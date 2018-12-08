@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="UnitRuler">
+        <attr name="SecondPrecision" format="integer"/>
+        <attr name="MillisecondPrecision" format="integer"/>
+
+        <attr name="mainTickDrawableId" format="integer|reference"/>
+        <attr name="otherTickDrawableId" format="integer|reference"/>
+        <attr name="tickPaddingRight" format="integer"/>
+        <attr name="tickValue" format="string|reference"/>
+    </declare-styleable>
+
+</resources>
