@@ -23,30 +23,33 @@ public class MainActivity extends AppCompatActivity {
         scrollView.postDelayed(new Runnable() {
             @Override
             public void run() {
-                String time = "00:00:000";
+                scrollView.start();
                 long t = 0;
-                for (int i = 0; i < 2000; i++) {
-                    time = increment(time);
-                    t += 5;
-                    final String finalTime = time;
+                for (int i = 0; i < 100; i++) {
+                    t += 100;
                     scrollView.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            scrollView.moveTo(finalTime);
+                            scrollView.setFrameData((int) (Math.random() * 11) + 10);
                         }
                     }, t);
-
                 }
+                scrollView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        scrollView.stop();
+                    }
+                }, 10 * 1000);
             }
         }, 1000);
+    }
 
-    }
-    Calendar calendar = Calendar.getInstance();
-    public String increment(String time) {
-        SimpleDateFormat formatter = new SimpleDateFormat("mm:ss:SSS", Locale.CHINA);
-        formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-        calendar.setTime(TimeUtil.String2Date(time, formatter));
-        calendar.add(Calendar.MILLISECOND, 5);
-        return TimeUtil.Date2String(calendar.getTime(), formatter);
-    }
+//    Calendar calendar = Calendar.getInstance();
+//    public String increment(String time) {
+//        SimpleDateFormat formatter = new SimpleDateFormat("mm:ss:SSS", Locale.CHINA);
+//        formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+//        calendar.setTime(TimeUtil.String2Date(time, formatter));
+//        calendar.add(Calendar.MILLISECOND, 100);
+//        return TimeUtil.Date2String(calendar.getTime(), formatter);
+//    }
 }

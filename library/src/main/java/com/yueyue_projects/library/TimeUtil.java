@@ -53,6 +53,14 @@ public class TimeUtil {
         return Date2String(calendar.getTime(), formatter);
     }
 
+    public static String incrementByMill(String time, int amount) {
+        SimpleDateFormat formatter = new SimpleDateFormat("mm:ss:SSS", Locale.CHINA);
+        formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+        calendar.setTime(TimeUtil.String2Date(time, formatter));
+        calendar.add(Calendar.MILLISECOND, amount);
+        return TimeUtil.Date2String(calendar.getTime(), formatter);
+    }
+
     /**
      * 计算n = time / precisionValue ;
      * @param time

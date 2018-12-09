@@ -1,21 +1,21 @@
 package com.yueyue_projects.library;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 import java.util.Calendar;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.content.ContentValues.TAG;
 
@@ -31,8 +31,10 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
 
     private Paint mPaint;
     private int mUnitRulerPx = -1;
-    private Bitmap mBufferBitmap;
-    private Canvas mBufferCanvas;
+    private float mMillisecondEachPx = 0;
+    private SparseArray<Integer> mFrameDatas = new SparseArray<>();
+    private boolean mStopFlag = false;
+
     public TimeHorizontalScrollView(Context context) {
         this(context, null);
     }
@@ -68,7 +70,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
                 }
                 initFlag = false;
             }
-
+             mMillisecondEachPx = ((float) (bigPrecision * 1000)) / mUnitRulerPx;
         }
     }
 
@@ -76,10 +78,29 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (mBufferBitmap == null) {
-            return;
+        int startPx = 0;
+        int endPx = 0;
+        if (scrollToPx > ScreenUtil.getScreenWidthPix(this.getContext()) - mStartPosition) {
+            startPx = scrollToPx;
+            endPx = startPx + mStartPosition;
+        } else {
+            startPx = mStartPosition;
+            endPx = scrollToPx + startPx;
         }
-        canvas.drawBitmap(mBufferBitmap, mStartPosition,this.getMeasuredHeight() / 2 - 10, null);
+
+        for (int i = 0; i < mFrameDatas.size(); i++) {
+            int key = mFrameDatas.keyAt(i);
+            if (key >= startPx && key <= endPx) {
+                int vol = mFrameDatas.get(key);
+                canvas.drawRect(key, this.getMeasuredHeight() / 2 - vol, key + 5, this.getMeasuredHeight() / 2 + vol, mPaint);
+            }
+        }
+//        for (int i = startPx; i < endPx; i++) {
+//            Integer vol = 0;
+//            if ((vol = mFrameDatas.get(i)) != null) {
+//                canvas.drawRect(i, this.getMeasuredHeight() / 2 - vol, i + 5, this.getMeasuredHeight() / 2 + vol, mPaint);
+//            }
+//        }
     }
 
 
@@ -133,15 +154,11 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
     private int preBigN = 0;
 
 
-    private int scrollToPx ;
-    /**
-     *
-     * @param time 格式为mm:ss:SSS
-     */
-    public void moveTo(String time){
+    private int scrollToPx = 0;
+
+    private void moveTo(String time){
         if (mUnitRulerPx != -1) {
-            float millisecondEachPx = ((float) (bigPrecision * 1000)) / mUnitRulerPx;
-            scrollToPx = TimeUtil.convertSpecPrecision(time, millisecondEachPx, Calendar.MILLISECOND);
+            scrollToPx = TimeUtil.convertSpecPrecision(time, mMillisecondEachPx, Calendar.MILLISECOND);
             int bigN = TimeUtil.convertSpecPrecision(time, bigPrecision, Calendar.SECOND);
             if (bigN - preBigN > 1) {
                 for (int i = 0; i < bigN - preBigN; i++) {
@@ -149,22 +166,76 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
                 }
                 preBigN = bigN;
             }
-            Log.d(TAG, "moveTo: " + scrollToPx);
-
-            //双缓冲
-            if (mBufferBitmap == null) {
-                mBufferBitmap = Bitmap.createBitmap(1080 + PRE_LOAD_NUM * mUnitRulerPx, 20, Bitmap.Config.ARGB_4444);
-                mBufferCanvas = new Canvas(mBufferBitmap);
-            }
-            mBufferCanvas.drawRect(scrollToPx, 0, 10 + scrollToPx, 20, mPaint);
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    smoothScrollTo(scrollToPx, TimeHorizontalScrollView.this.getScrollY());
-                    invalidate();
-                }
-            });
-
+            Log.d(TAG, "moveTo: " + mCurTime);
+            smoothScrollTo(scrollToPx, TimeHorizontalScrollView.this.getScrollY());
         }
     }
+
+    /**
+     * 该帧所在的时间点和音量
+     * @param time 格式为mm:ss:SSS
+     * @param volumeValue (0 - 100)
+     */
+    public void setFrameData(String time, int volumeValue){
+        mFrameDatas.put(TimeUtil.convertSpecPrecision(time, mMillisecondEachPx, Calendar.MILLISECOND) + mStartPosition, volumeValue);
+    }
+
+    public void setFrameData(int volumeValue){
+        int px = TimeUtil.convertSpecPrecision(mCurTime, mMillisecondEachPx, Calendar.MILLISECOND);
+        mFrameDatas.put(px + mStartPosition, volumeValue);
+        invalidate();
+    }
+
+
+    String mCurTime = "00:00:000";
+    long oldTime = 0;
+    /**
+     * 开启记录
+     */
+    public void start(){
+        final Timer timer = new Timer();
+        oldTime = System.currentTimeMillis();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                long curTime = System.currentTimeMillis();
+                mCurTime = TimeUtil.incrementByMill(mCurTime, (int) (curTime - oldTime));
+                oldTime = curTime;
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        moveTo(mCurTime);
+                    }
+                });
+                if (mStopFlag) {
+                    timer.cancel();
+                }
+            }
+        }, 0, 20);
+    }
+
+    public void stop(){
+        mStopFlag = true;
+    }
+
+    /**
+     * 设置渲染间距
+     * @param interval
+     */
+    public void setInterval(int interval){
+
+    }
+
+//    public void convertTimeByPx(int leftPx){
+//        leftPx -= mStartPosition;
+//        // 秒
+//        int curUnit = leftPx / mUnitRulerPx;
+//        int[] coefficients = {60, 60, 24};
+//        int i = 0;
+//        while(curUnit > coefficients[i]) {
+//            i++;
+//            curUnit = curUnit / coefficients[i];
+//        };
+//
+//    }
 }
