@@ -2,6 +2,7 @@ package com.yueyue_projects.library;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -14,6 +15,9 @@ public class UnitRuler extends ViewGroup{
     private final int DEFAULT_LEVEL_PRECISION = 1;
     private final int DEFAULT_MILLSECOND_PRECISION = 250;
 
+    public static final int RULER_TOP = 0;
+    public static final int RULER_BOTTOM = 1;
+    private int rulerPosition = RULER_TOP;
     /**
      * 大格精度
      */
@@ -68,17 +72,19 @@ public class UnitRuler extends ViewGroup{
         tickTextView = new TextView(context);
         addSystemView(tickTextView);
         tickTextView.setText(tickText);
+
+        rulerPosition = ta.getInteger(R.styleable.UnitRuler_rulerPosition, RULER_TOP);
         ta.recycle();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int totalWidth = 0;
-        int height = 0;
+        int totalHeight = 0;
 
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int totalWidthWithoutPadding = 0;
-
+        measureChild(tickTextView, widthMeasureSpec, heightMeasureSpec);
         if (widthMode == MeasureSpec.EXACTLY) {
             for (ImageView imageView : tickImageViews) {
                 measureChild(imageView, widthMeasureSpec, heightMeasureSpec);
@@ -92,30 +98,60 @@ public class UnitRuler extends ViewGroup{
                 totalWidth += imageView.getMeasuredWidth() + intervalSize;
             }
         }
-        measureChild(tickTextView, widthMeasureSpec, heightMeasureSpec);
-        if (tickImageViews.length > 0) {
-            height = tickImageViews[0].getMeasuredHeight() + tickTextView.getMeasuredHeight();
+        // 处理高度
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+        if (heightMode == MeasureSpec.EXACTLY) {
+            totalHeight = MeasureSpec.getSize(heightMeasureSpec);
+        } else if (heightMode == MeasureSpec.AT_MOST) {
+            if (tickImageViews.length > 0) {
+                totalHeight = tickImageViews[0].getMeasuredHeight() + tickTextView.getMeasuredHeight();
+            }
         }
-
-        setMeasuredDimension(totalWidth, height);
+        setMeasuredDimension(totalWidth, totalHeight);
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        int maxHeight = layoutTickImageViews(l, t, r, b);
-        tickTextView.layout(0, maxHeight, tickTextView.getMeasuredWidth(), tickTextView.getMeasuredHeight());
+        if (rulerPosition == RULER_TOP) {
+            layoutTop(l, t, r, b);
+        } else if (rulerPosition == RULER_BOTTOM) {
+            layoutBottom(l, t, r, b);
+        }
     }
 
-    private int layoutTickImageViews(int l, int t, int r, int b) {
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+    }
+
+    private void layoutBottom(int l, int t, int r, int b) {
+        tickTextView.layout(0,
+                b - t - tickTextView.getMeasuredHeight(), tickTextView.getMeasuredWidth(), b - t);
+//        layoutTickImageViews(0, )
         int maxHeight = Integer.MIN_VALUE;
-        int lc = 0;
-        int tc = 0;
         for (ImageView imageView : tickImageViews) {
             if (maxHeight < imageView.getMeasuredHeight()) {
                 maxHeight = imageView.getMeasuredHeight();
             }
-            imageView.layout(lc, tc, lc + imageView.getMeasuredWidth(), tc + imageView.getMeasuredHeight());
-            lc = lc + imageView.getMeasuredWidth() + intervalSize;
+        }
+        layoutTickImageViews(0, b - maxHeight - tickTextView.getMeasuredHeight());
+    }
+
+    private void layoutTop(int l, int t, int r, int b) {
+        int maxHeight = layoutTickImageViews(0, 0);
+        tickTextView.layout(0, maxHeight, tickTextView.getMeasuredWidth(), tickTextView.getMeasuredHeight());
+    }
+
+
+    private int layoutTickImageViews(int startLeft, int startTop) {
+        int maxHeight = Integer.MIN_VALUE;
+        for (ImageView imageView : tickImageViews) {
+            if (maxHeight < imageView.getMeasuredHeight()) {
+                maxHeight = imageView.getMeasuredHeight();
+            }
+            imageView.layout(startLeft, startTop, startLeft + imageView.getMeasuredWidth(), startTop + imageView.getMeasuredHeight());
+            startLeft = startLeft + imageView.getMeasuredWidth() + intervalSize;
         }
         return maxHeight;
     }
@@ -131,6 +167,10 @@ public class UnitRuler extends ViewGroup{
         for (int i = 1; i < tickImageViews.length; i++) {
             tickImageViews[i].setImageDrawable(drawable);
         }
+    }
+
+    public void setRulerPosition(int position){
+        rulerPosition = position;
     }
 
     public void setTickValue(String value){

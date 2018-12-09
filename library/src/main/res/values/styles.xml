@@ -8,6 +8,10 @@
         <attr name="otherTickDrawableId" format="integer|reference"/>
         <attr name="tickPaddingRight" format="integer"/>
         <attr name="tickValue" format="string|reference"/>
+        <attr name="rulerPosition" format="integer">
+            <enum name="top" value="0"/>
+            <enum name="bottom" value="1"/>
+        </attr>
     </declare-styleable>
 
 </resources>
