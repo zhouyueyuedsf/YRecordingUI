@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         final Paint paint = new Paint();
 
         final TimeHorizontalScrollView scrollView = (TimeHorizontalScrollView)findViewById(R.id.time_scroll_view);
-        scrollView.show();
+//        scrollView.show();
         scrollView.setITextureRenderer(new ITextureRenderer() {
             @Override
             public void draw(Canvas canvas, int renderStartPx, int renderPivotPx, int renderEndPx,

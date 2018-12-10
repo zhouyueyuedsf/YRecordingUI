@@ -2,6 +2,7 @@ package com.yueyue_projects.library;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.util.AttributeSet;
 
 public class ParamsController {
      int mainTickDrawableId;
@@ -19,7 +20,8 @@ public class ParamsController {
      * 小格精度
      */
     public int millisecondPrecision = -1;
-    public ParamsController(Context context){
+
+    public ParamsController(Context context, AttributeSet attrs, int defStyleAttr){
         TypedArray ta = context.obtainStyledAttributes(null, R.styleable.TimeHorizontalScrollView, 0, 0);
         mainTickDrawableId = ta.getResourceId(R.styleable.TimeHorizontalScrollView_mainTickDrawableId, -1);
         otherTickDrawableId = ta.getResourceId(R.styleable.TimeHorizontalScrollView_otherTickDrawableId, -1);

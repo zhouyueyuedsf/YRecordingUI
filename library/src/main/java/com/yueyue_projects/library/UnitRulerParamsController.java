@@ -2,13 +2,14 @@ package com.yueyue_projects.library;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.util.AttributeSet;
 
 public class UnitRulerParamsController extends ParamsController {
     String tickText;
 
-    public UnitRulerParamsController(Context context) {
-        super(context);
-        TypedArray ta = context.obtainStyledAttributes(null, R.styleable.UnitRuler, 0, 0);
+    public UnitRulerParamsController(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.UnitRuler, defStyleAttr, 0);
         tickText = ta.getString(R.styleable.UnitRuler_tickValue);
         ta.recycle();
     }

@@ -51,7 +51,8 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
 
     public TimeHorizontalScrollView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        timeScrollViewController = new TimeScrollViewController(context);
+        timeScrollViewController = new TimeScrollViewController(context, attrs, defStyleAttr);
+        show();
     }
 
     @SuppressLint("DrawAllocation")
@@ -300,21 +301,21 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
     }
 
     private ParamsController timeScrollViewController;
-    public static class StyleBuilder extends UnitRuler.StyleBuilder {
-
-        public StyleBuilder(Context context) {
-            super(context);
-            P = new TimeScrollViewController.TimeScrollParams(context);
-        }
-
-        @Override
-        public IBuilderParam create() {
-            TimeHorizontalScrollView scrollView = new TimeHorizontalScrollView(context);
-            //自己设置的值
-            P.apply(scrollView.timeScrollViewController);
-            scrollView.show();
-            return scrollView;
-        }
-    }
+//    public static class StyleBuilder extends UnitRuler.StyleBuilder {
+//
+//        public StyleBuilder(Context context) {
+//            super(context);
+//            P = new TimeScrollViewController.TimeScrollParams(context);
+//        }
+//
+//        @Override
+//        public IBuilderParam create() {
+//            TimeHorizontalScrollView scrollView = new TimeHorizontalScrollView(context);
+//            //自己设置的值
+//            P.apply(scrollView.timeScrollViewController);
+//            scrollView.show();
+//            return scrollView;
+//        }
+//    }
 
 }
