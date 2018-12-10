@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
@@ -34,6 +35,8 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
     private float mMillisecondEachPx = 0;
     private SparseArray<Integer> mFrameDatas = new SparseArray<>();
     private boolean mStopFlag = false;
+
+    private ITextureRenderer mITextureRenderer;
 
     public TimeHorizontalScrollView(Context context) {
         this(context, null);
@@ -76,6 +79,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
 
 
 
+
     @Override
     protected void onDraw(Canvas canvas) {
         int startPx = 0;
@@ -88,19 +92,18 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
             endPx = scrollToPx + startPx;
         }
 
-        for (int i = 0; i < mFrameDatas.size(); i++) {
-            int key = mFrameDatas.keyAt(i);
-            if (key >= startPx && key <= endPx) {
-                int vol = mFrameDatas.get(key);
-                canvas.drawRect(key, this.getMeasuredHeight() / 2 - vol, key + 5, this.getMeasuredHeight() / 2 + vol, mPaint);
+        if (mITextureRenderer != null) {
+            Log.d("zyy", "onDraw: " + startPx + "," + endPx);
+            mITextureRenderer.draw(canvas, startPx, endPx, mFrameDatas);
+        } else {
+            for (int i = 0; i < mFrameDatas.size(); i++) {
+                int key = mFrameDatas.keyAt(i);
+                if (key >= startPx && key <= endPx) {
+                    int vol = mFrameDatas.get(key);
+                    canvas.drawRect(key, this.getMeasuredHeight() / 2 - vol, key + 5, this.getMeasuredHeight() / 2 + vol, mPaint);
+                }
             }
         }
-//        for (int i = startPx; i < endPx; i++) {
-//            Integer vol = 0;
-//            if ((vol = mFrameDatas.get(i)) != null) {
-//                canvas.drawRect(i, this.getMeasuredHeight() / 2 - vol, i + 5, this.getMeasuredHeight() / 2 + vol, mPaint);
-//            }
-//        }
     }
 
 
@@ -226,7 +229,33 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
 
     }
 
-//    public void convertTimeByPx(int leftPx){
+    public void setITextureRenderer(ITextureRenderer textureRenderer) {
+        this.mITextureRenderer = textureRenderer;
+    }
+
+    private int downX = 0;
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+
+        int endX = 0;
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                downX = (int) ev.getRawX();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                int delaX = (int) (ev.getRawX() - downX);
+                scrollToPx -= delaX;
+                smoothScrollTo(scrollToPx, this.getScrollY());
+//                invalidate();
+
+                return true;
+        }
+        return true;
+//        return super.onTouchEvent(ev);
+    }
+
+
+    //    public void convertTimeByPx(int leftPx){
 //        leftPx -= mStartPosition;
 //        // 秒
 //        int curUnit = leftPx / mUnitRulerPx;
