@@ -66,12 +66,4 @@ public class MainActivity extends AppCompatActivity {
         }, 1000);
     }
 
-//    Calendar calendar = Calendar.getInstance();
-//    public String increment(String time) {
-//        SimpleDateFormat formatter = new SimpleDateFormat("mm:ss:SSS", Locale.CHINA);
-//        formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-//        calendar.setTime(TimeUtil.String2Date(time, formatter));
-//        calendar.add(Calendar.MILLISECOND, 100);
-//        return TimeUtil.Date2String(calendar.getTime(), formatter);
-//    }
 }
