@@ -3,6 +3,7 @@ package com.yueyue_projects.library;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.ImageFormat;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -190,5 +191,12 @@ public class UnitRuler extends ViewGroup{
 
     public int getMillisecondPrecision() {
         return millisecondPrecision;
+    }
+
+    int getRenderComponentsTotalHeight(){
+        if (tickImageViews.length > 0) {
+            return tickTextView.getMeasuredHeight() + tickImageViews[0].getMeasuredHeight();
+        }
+        return tickTextView.getHeight();
     }
 }

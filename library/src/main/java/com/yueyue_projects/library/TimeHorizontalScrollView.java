@@ -1,7 +1,9 @@
 package com.yueyue_projects.library;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -52,6 +54,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
         mPaint = new Paint();
     }
 
+    @SuppressLint("DrawAllocation")
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -74,36 +77,50 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
                 initFlag = false;
             }
              mMillisecondEachPx = ((float) (bigPrecision * 1000)) / mUnitRulerPx;
+
+            int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+            if (heightMode == MeasureSpec.EXACTLY) {
+                int height = MeasureSpec.getSize(heightMeasureSpec);
+                mPivotLineHeight = height - mUnitRulers.get(0).getRenderComponentsTotalHeight();
+            }
         }
+
+
     }
-
-
-
+    private int mPivotLineHeight = 0;
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+    }
 
     @Override
     protected void onDraw(Canvas canvas) {
         int startPx = 0;
+        int pivotPx = 0;
         int endPx = 0;
         if (scrollToPx > ScreenUtil.getScreenWidthPix(this.getContext()) - mStartPosition) {
             startPx = scrollToPx;
-            endPx = startPx + mStartPosition;
+            pivotPx = startPx + mStartPosition;
         } else {
             startPx = mStartPosition;
-            endPx = scrollToPx + startPx;
+            pivotPx = scrollToPx + startPx;
         }
+        endPx = pivotPx + ScreenUtil.getScreenWidthPix(this.getContext()) - mStartPosition;
 
         if (mITextureRenderer != null) {
-            Log.d("zyy", "onDraw: " + startPx + "," + endPx);
-            mITextureRenderer.draw(canvas, startPx, endPx, mFrameDatas);
+            mITextureRenderer.draw(canvas, startPx, pivotPx, endPx, mPivotLineHeight, mFrameDatas);
         } else {
+            mPaint.setColor(Color.BLACK);
             for (int i = 0; i < mFrameDatas.size(); i++) {
                 int key = mFrameDatas.keyAt(i);
-                if (key >= startPx && key <= endPx) {
+                if (key >= startPx && key <= pivotPx) {
                     int vol = mFrameDatas.get(key);
                     canvas.drawRect(key, this.getMeasuredHeight() / 2 - vol, key + 5, this.getMeasuredHeight() / 2 + vol, mPaint);
                 }
             }
         }
+        mPaint.setColor(Color.GREEN);
+        canvas.drawRect(pivotPx - 4, 0, pivotPx + 4, mPivotLineHeight, mPaint);
     }
 
 
@@ -112,6 +129,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
         setStartPosition();
         addOneUnitRuler();
     }
+
 
     private int bigPrecision;
     private int smallPrecision;
@@ -128,14 +146,14 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
             bigPrecision = unitRuler.getSecondPrecision();
             smallPrecision = unitRuler.getMillisecondPrecision();
         }
-        rootLayout.addView(unitRuler, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 300));
+        rootLayout.addView(unitRuler, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     private void addRootLayout(){
         if (rootLayout == null) {
             rootLayout = new LinearLayout(this.getContext());
             rootLayout.setOrientation(LinearLayout.HORIZONTAL);
-            this.addView(rootLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            this.addView(rootLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
         }
     }
 
@@ -148,7 +166,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
     private void setStartPosition() {
         if (rootLayout != null) {
             rootLayout.addView(new LinearLayout(this.getContext()), 0,
-                    new LinearLayout.LayoutParams(ScreenUtil.getScreenWidthPix(this.getContext()) - mStartPosition, ViewGroup.LayoutParams.WRAP_CONTENT));
+                    new LinearLayout.LayoutParams(ScreenUtil.getScreenWidthPix(this.getContext()) - mStartPosition, ViewGroup.LayoutParams.MATCH_PARENT));
         } else {
             throw new IllegalStateException("rootLayout mush be add before setStartPosition");
         }
@@ -196,8 +214,10 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
      * 开启记录
      */
     public void start(){
+        //设置不可滚动
         final Timer timer = new Timer();
         oldTime = System.currentTimeMillis();
+        mStopFlag = false;
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -217,8 +237,14 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
         }, 0, 20);
     }
 
+    /**
+     * 录音停止时，所在的位置
+     */
+    private int mLastPx = 0;
+
     public void stop(){
         mStopFlag = true;
+        mLastPx = scrollToPx + mStartPosition;
     }
 
     /**
@@ -233,6 +259,9 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
         this.mITextureRenderer = textureRenderer;
     }
 
+    /**
+     * 拖动时，x的坐标
+     */
     private int downX = 0;
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
@@ -245,14 +274,27 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
             case MotionEvent.ACTION_MOVE:
                 int delaX = (int) (ev.getRawX() - downX);
                 scrollToPx -= delaX;
-                smoothScrollTo(scrollToPx, this.getScrollY());
-//                invalidate();
+                if (scrollToPx + mStartPosition >= mLastPx) {
+                    if (delaX <= 0) {
+                        scrollToPx = mLastPx - mStartPosition;
+                        smoothScrollTo(scrollToPx, this.getScrollY());
+                        return false;
+                    }
+                }
+                if (scrollToPx <= 0) {
+                    if (delaX >= 0) {
+                        scrollToPx = 0;
+                        smoothScrollTo(scrollToPx, this.getScrollY());
+                        return false;
+                    }
+                }
 
+                smoothScrollTo(scrollToPx, this.getScrollY());
                 return true;
         }
         return true;
-//        return super.onTouchEvent(ev);
     }
+
 
 
     //    public void convertTimeByPx(int leftPx){
