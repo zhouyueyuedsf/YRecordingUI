@@ -3,6 +3,7 @@ package com.yueyue_projects.yrecordingui;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.SparseArray;
@@ -23,7 +24,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         final Paint paint = new Paint();
+
         final TimeHorizontalScrollView scrollView = (TimeHorizontalScrollView)findViewById(R.id.time_scroll_view);
+        scrollView.show();
         scrollView.setITextureRenderer(new ITextureRenderer() {
             @Override
             public void draw(Canvas canvas, int renderStartPx, int renderPivotPx, int renderEndPx,
@@ -64,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
                 }, 10 * 1000);
             }
         }, 1000);
+
     }
 
 }

@@ -1,10 +1,7 @@
 package com.yueyue_projects.library;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.ImageFormat;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -12,29 +9,39 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class UnitRuler extends ViewGroup{
-    private final int DEFAULT_LEVEL_PRECISION = 1;
-    private final int DEFAULT_MILLSECOND_PRECISION = 250;
+public class UnitRuler extends ViewGroup implements IBuilderParam{
+    /**
+     * 默认的秒级精度
+     */
+    static final int DEFAULT_SECOND_PRECISION = 1;
+    /**
+     * 默认的毫秒级精度
+     */
+    static final int DEFAULT_MILLISECOND_PRECISION = 250;
 
     public static final int RULER_TOP = 0;
     public static final int RULER_BOTTOM = 1;
-    private int rulerPosition = RULER_TOP;
+    static final int MillI_SECOND_INTERVAL_SIZE = 50;
+
+//    private StyleBuilder mStyleBuilder;
+
     /**
      * 大格精度
      */
-    private int secondPrecision = DEFAULT_LEVEL_PRECISION;
+    private int secondPrecision = DEFAULT_SECOND_PRECISION;
 
     /**
      * 小格精度
      */
-    private int millisecondPrecision = DEFAULT_MILLSECOND_PRECISION;
+    private int millisecondPrecision = DEFAULT_MILLISECOND_PRECISION;
 
-
-    private int intervalSize;
+    private int milliSecondIntervalSize = MillI_SECOND_INTERVAL_SIZE;
 
     private ImageView[] tickImageViews;
 
     private TextView tickTextView;
+
+    UnitRulerParamsController mParamsController;
     public UnitRuler(Context context) {
         this(context, null);
     }
@@ -45,37 +52,7 @@ public class UnitRuler extends ViewGroup{
 
     public UnitRuler(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        tickImageViews = new ImageView[(secondPrecision * 1000) / millisecondPrecision];
-        for (int i = 0; i < tickImageViews.length; i++) {
-            tickImageViews[i] = new ImageView(context);
-            addSystemView(tickImageViews[i]);
-        }
-        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.UnitRuler, defStyleAttr, 0);
-        int mainTickDrawableId = ta.getResourceId(R.styleable.UnitRuler_mainTickDrawableId, -1);
-        int otherTickDrawableId = ta.getResourceId(R.styleable.UnitRuler_otherTickDrawableId, -1);
-        if (mainTickDrawableId != -1) {
-            tickImageViews[0].setImageDrawable(context.getResources().getDrawable(mainTickDrawableId));
-        } else {
-            tickImageViews[0].setImageDrawable(context.getResources().getDrawable(R.drawable.im_main_tick));
-        }
-
-        if (otherTickDrawableId != -1) {
-            for (int i = 1; i < tickImageViews.length; i++) {
-                tickImageViews[i].setImageDrawable(context.getResources().getDrawable(otherTickDrawableId));
-            }
-        } else {
-            for (int i = 1; i < tickImageViews.length; i++) {
-                tickImageViews[i].setImageDrawable(context.getResources().getDrawable(R.drawable.im_tick));
-            }
-        }
-        intervalSize = ta.getInteger(R.styleable.UnitRuler_tickPaddingRight, 50);
-        String tickText = ta.getString(R.styleable.UnitRuler_tickValue);
-        tickTextView = new TextView(context);
-        addSystemView(tickTextView);
-        tickTextView.setText(tickText);
-
-        rulerPosition = ta.getInteger(R.styleable.UnitRuler_rulerPosition, RULER_TOP);
-        ta.recycle();
+        mParamsController = new UnitRulerParamsController(context);
     }
 
     @Override
@@ -91,12 +68,14 @@ public class UnitRuler extends ViewGroup{
                 measureChild(imageView, widthMeasureSpec, heightMeasureSpec);
                 totalWidthWithoutPadding += imageView.getMeasuredWidth();
             }
-            intervalSize = (MeasureSpec.getSize(widthMeasureSpec) - totalWidthWithoutPadding) / tickImageViews.length;
+            milliSecondIntervalSize = (MeasureSpec.getSize(widthMeasureSpec) - totalWidthWithoutPadding) / tickImageViews.length;
+            mParamsController.milliSecondIntervalSize = milliSecondIntervalSize;
             totalWidth = MeasureSpec.getSize(widthMeasureSpec);
         } else {
+            milliSecondIntervalSize = mParamsController.milliSecondIntervalSize;
             for (ImageView imageView : tickImageViews) {
                 measureChild(imageView, widthMeasureSpec, heightMeasureSpec);
-                totalWidth += imageView.getMeasuredWidth() + intervalSize;
+                totalWidth += imageView.getMeasuredWidth() + milliSecondIntervalSize;
             }
         }
         // 处理高度
@@ -113,9 +92,9 @@ public class UnitRuler extends ViewGroup{
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        if (rulerPosition == RULER_TOP) {
+        if (mParamsController.rulerPosition == RULER_TOP) {
             layoutTop(l, t, r, b);
-        } else if (rulerPosition == RULER_BOTTOM) {
+        } else if (mParamsController.rulerPosition == RULER_BOTTOM) {
             layoutBottom(l, t, r, b);
         }
     }
@@ -123,13 +102,11 @@ public class UnitRuler extends ViewGroup{
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
     }
 
     private void layoutBottom(int l, int t, int r, int b) {
         tickTextView.layout(0,
                 b - t - tickTextView.getMeasuredHeight(), tickTextView.getMeasuredWidth(), b - t);
-//        layoutTickImageViews(0, )
         int maxHeight = Integer.MIN_VALUE;
         for (ImageView imageView : tickImageViews) {
             if (maxHeight < imageView.getMeasuredHeight()) {
@@ -152,35 +129,63 @@ public class UnitRuler extends ViewGroup{
                 maxHeight = imageView.getMeasuredHeight();
             }
             imageView.layout(startLeft, startTop, startLeft + imageView.getMeasuredWidth(), startTop + imageView.getMeasuredHeight());
-            startLeft = startLeft + imageView.getMeasuredWidth() + intervalSize;
+            startLeft = startLeft + imageView.getMeasuredWidth() + milliSecondIntervalSize;
         }
         return maxHeight;
     }
 
 
-    public void setMainTickImageViewDrawable(Drawable drawable){
-        if (tickImageViews.length > 0) {
-            tickImageViews[0].setImageDrawable(drawable);
+    static class StyleBuilder extends Builder<IBuilderParam> {
+
+        public StyleBuilder(Context context) {
+            super(context);
+            P = new UnitRulerParamsController.UnitRulerParams(context);
+        }
+
+        public void setTickValue(String value){
+            ((UnitRulerParamsController.UnitRulerParams)P).tickText = value;
+        }
+
+        @Override
+        public IBuilderParam create() {
+            UnitRuler unitRuler = new UnitRuler(context);
+            P.apply(unitRuler.mParamsController);
+            unitRuler.show();
+            return unitRuler;
         }
     }
 
-    public void setOtherTickImageViewDrawable(Drawable drawable){
-        for (int i = 1; i < tickImageViews.length; i++) {
-            tickImageViews[i].setImageDrawable(drawable);
+    private void show() {
+        tickImageViews = new ImageView[(mParamsController.secondPrecision * 1000) / mParamsController.millisecondPrecision];
+        for (int i = 0; i < tickImageViews.length; i++) {
+            tickImageViews[i] = new ImageView(this.getContext());
+            addSystemView(tickImageViews[i]);
         }
+        if (mParamsController.mainTickDrawableId != -1) {
+            tickImageViews[0].setImageDrawable(this.getContext().getResources().getDrawable(mParamsController.mainTickDrawableId));
+        } else {
+            tickImageViews[0].setImageDrawable(this.getContext().getResources().getDrawable(R.drawable.im_main_tick));
+        }
+
+        if (mParamsController.otherTickDrawableId != -1) {
+            for (int i = 1; i < tickImageViews.length; i++) {
+                tickImageViews[i].setImageDrawable(this.getContext().getResources().getDrawable(mParamsController.otherTickDrawableId));
+            }
+        } else {
+            for (int i = 1; i < tickImageViews.length; i++) {
+                tickImageViews[i].setImageDrawable(this.getContext().getResources().getDrawable(R.drawable.im_tick));
+            }
+        }
+        tickTextView = new TextView(this.getContext());
+        addSystemView(tickTextView);
+        tickTextView.setText(mParamsController.tickText);
     }
 
-    public void setRulerPosition(int position){
-        rulerPosition = position;
-    }
-
-    public void setTickValue(String value){
-        tickTextView.setText(value);
-    }
 
     public String getTickValue(){
         return tickTextView.getText().toString();
     }
+
     private void addSystemView(View v) {
         addView(v, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     }

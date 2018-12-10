@@ -5,10 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
         <com.yueyue_projects.library.TimeHorizontalScrollView
             android:id="@+id/time_scroll_view"
             android:layout_width="match_parent"
-            android:layout_height="150dp"/>
+            android:layout_height="150dp"
+            app:rulerPosition="top"
+            />
 
 
 </android.support.constraint.ConstraintLayout>

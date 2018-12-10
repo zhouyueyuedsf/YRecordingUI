@@ -45,11 +45,11 @@ public class TimeUtil {
     }
 
 
-    public static String incrementBySecond(String time) {
+    public static String incrementBySecond(String time, int amount) {
         SimpleDateFormat formatter = new SimpleDateFormat("mm:ss", Locale.CHINA);
         formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
         calendar.setTime(String2Date(time, formatter));
-        calendar.add(Calendar.SECOND, 1);
+        calendar.add(Calendar.SECOND, amount);
         return Date2String(calendar.getTime(), formatter);
     }
 

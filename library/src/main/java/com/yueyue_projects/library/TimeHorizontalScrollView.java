@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
@@ -22,7 +23,7 @@ import java.util.TimerTask;
 
 import static android.content.ContentValues.TAG;
 
-public class TimeHorizontalScrollView extends HorizontalScrollView {
+public class TimeHorizontalScrollView extends HorizontalScrollView implements IBuilderParam {
     private final int DEFAULT_START_POSITION = ScreenUtil.getScreenWidthPix(this.getContext().getApplicationContext()) / 2;
     private int mStartPosition = DEFAULT_START_POSITION;
 
@@ -50,8 +51,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
 
     public TimeHorizontalScrollView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initUI();
-        mPaint = new Paint();
+        timeScrollViewController = new TimeScrollViewController(context);
     }
 
     @SuppressLint("DrawAllocation")
@@ -124,23 +124,28 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
     }
 
 
-    private void initUI(){
+    public void show(){
         ensureRootLayout();
         setStartPosition();
         addOneUnitRuler();
+        mPaint = new Paint();
     }
 
 
     private int bigPrecision;
     private int smallPrecision;
     private void addOneUnitRuler() {
-        UnitRuler unitRuler = new UnitRuler(this.getContext());
-        unitRuler.setRulerPosition(UnitRuler.RULER_BOTTOM);
+        UnitRuler.StyleBuilder builder = new UnitRuler.StyleBuilder(this.getContext());
+        builder.setTimeRulerPosition(timeScrollViewController.rulerPosition);
         if (mUnitRulers.size() != 0) {
-            unitRuler.setTickValue(TimeUtil.incrementBySecond(mUnitRulers.get(mUnitRulers.size() - 1).getTickValue()));
+            builder.setTickValue(TimeUtil.incrementBySecond(mUnitRulers.get(mUnitRulers.size() - 1).mParamsController.tickText, timeScrollViewController.secondPrecision));
         } else {
-            unitRuler.setTickValue("00:00");
+            builder.setTickValue("00:00");
         }
+        builder.setSecondPrecision(timeScrollViewController.secondPrecision);
+        builder.setMillisecondPrecision(timeScrollViewController.millisecondPrecision);
+        builder.setMilliSecondIntervalSize(timeScrollViewController.milliSecondIntervalSize);
+        UnitRuler unitRuler = (UnitRuler) builder.create();
         mUnitRulers.add(unitRuler);
         if (initFlag) {
             bigPrecision = unitRuler.getSecondPrecision();
@@ -208,7 +213,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
     }
 
 
-    String mCurTime = "00:00:000";
+    private String mCurTime = "00:00:000";
     long oldTime = 0;
     /**
      * 开启记录
@@ -288,25 +293,28 @@ public class TimeHorizontalScrollView extends HorizontalScrollView {
                         return false;
                     }
                 }
-
                 smoothScrollTo(scrollToPx, this.getScrollY());
                 return true;
         }
         return true;
     }
 
+    private ParamsController timeScrollViewController;
+    public static class StyleBuilder extends UnitRuler.StyleBuilder {
 
+        public StyleBuilder(Context context) {
+            super(context);
+            P = new TimeScrollViewController.TimeScrollParams(context);
+        }
 
-    //    public void convertTimeByPx(int leftPx){
-//        leftPx -= mStartPosition;
-//        // 秒
-//        int curUnit = leftPx / mUnitRulerPx;
-//        int[] coefficients = {60, 60, 24};
-//        int i = 0;
-//        while(curUnit > coefficients[i]) {
-//            i++;
-//            curUnit = curUnit / coefficients[i];
-//        };
-//
-//    }
+        @Override
+        public IBuilderParam create() {
+            TimeHorizontalScrollView scrollView = new TimeHorizontalScrollView(context);
+            //自己设置的值
+            P.apply(scrollView.timeScrollViewController);
+            scrollView.show();
+            return scrollView;
+        }
+    }
+
 }
