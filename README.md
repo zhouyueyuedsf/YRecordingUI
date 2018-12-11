@@ -1,6 +1,6 @@
 # YRecordingUI(版本号：0.9）
 #### 效果
-![img](https://i.loli.net/2018/12/11/5c0f4ef8a4415.gif)
+![img](https://i.loli.net/2018/12/11/5c0f50a3caa92.gif)
 
 #### 目的
 
