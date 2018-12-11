@@ -1,4 +1,4 @@
-# YRecordingUI(版本号：0.5）
+# YRecordingUI(版本号：0.8）
 
 #### 目的
 
