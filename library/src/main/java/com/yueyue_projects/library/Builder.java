@@ -30,10 +30,19 @@ public abstract class Builder<T> {
         return this;
     }
 
-    public void setMillisecondPrecision(int millisecondPrecision) {
+    public Builder setMillisecondPrecision(int millisecondPrecision) {
         P.millisecondPrecision = millisecondPrecision;
+        return this;
     }
-    public T create() {
+
+    public Builder setTickValueColor(int color){
+        P.tickValueColor = color;
+        return this;
+    }
+
+
+
+   public T create() {
         return null;
     }
 

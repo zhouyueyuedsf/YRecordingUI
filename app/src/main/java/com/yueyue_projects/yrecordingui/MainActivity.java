@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                     int key = renderDatas.keyAt(i);
                     if (key >= renderStartPx && key <= renderPivotPx) {
                         int vol = renderDatas.get(key);
-                        paint.setColor(Color.BLACK);
+                        paint.setColor(Color.WHITE);
                         canvas.drawRect(key, renderHeight/ 2 - vol, key + 5, renderHeight / 2 + vol, paint);
                     } else if (key > renderPivotPx && key <= renderEndPx) {
                         int vol = renderDatas.get(key);

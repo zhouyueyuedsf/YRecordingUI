@@ -52,7 +52,7 @@ public class UnitRuler extends ViewGroup implements IBuilderParam{
 
     public UnitRuler(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mParamsController = new UnitRulerParamsController(context);
+        mParamsController = new UnitRulerParamsController(context, attrs, defStyleAttr);
     }
 
     @Override
@@ -142,8 +142,9 @@ public class UnitRuler extends ViewGroup implements IBuilderParam{
             P = new UnitRulerParamsController.UnitRulerParams(context);
         }
 
-        public void setTickValue(String value){
+        public Builder setTickValue(String value){
             ((UnitRulerParamsController.UnitRulerParams)P).tickText = value;
+            return this;
         }
 
         @Override
@@ -179,6 +180,7 @@ public class UnitRuler extends ViewGroup implements IBuilderParam{
         tickTextView = new TextView(this.getContext());
         addSystemView(tickTextView);
         tickTextView.setText(mParamsController.tickText);
+        tickTextView.setTextColor(mParamsController.tickValueColor);
     }
 
 

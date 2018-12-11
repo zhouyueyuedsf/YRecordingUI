@@ -21,13 +21,13 @@ public class UnitRulerParamsController extends ParamsController {
             super(context);
         }
 
-        @Override
-        public void apply(ParamsController mParamsController) {
-            super.apply(mParamsController);
-            if (this.tickText != null) {
-                ((UnitRulerParamsController)(mParamsController)).setTickText(this.tickText);
-            }
+    @Override
+    public void apply(ParamsController mParamsController) {
+        super.apply(mParamsController);
+        if (this.tickText != null) {
+            ((UnitRulerParamsController)(mParamsController)).setTickText(this.tickText);
         }
+    }
     }
     public void setTickText(String tickText) {
         this.tickText = tickText;

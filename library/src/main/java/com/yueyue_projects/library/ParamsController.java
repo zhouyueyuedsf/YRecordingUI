@@ -2,13 +2,13 @@ package com.yueyue_projects.library;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.util.AttributeSet;
 
 public class ParamsController {
      int mainTickDrawableId;
      int otherTickDrawableId;
      int milliSecondIntervalSize;
-     String tickText;
      int rulerPosition;
     static final int MillI_SECOND_INTERVAL_SIZE = 50;
     /**
@@ -21,14 +21,17 @@ public class ParamsController {
      */
     public int millisecondPrecision = -1;
 
+    public int tickValueColor = -1;
+
     public ParamsController(Context context, AttributeSet attrs, int defStyleAttr){
-        TypedArray ta = context.obtainStyledAttributes(null, R.styleable.TimeHorizontalScrollView, 0, 0);
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.TimeHorizontalScrollView, defStyleAttr, 0);
         mainTickDrawableId = ta.getResourceId(R.styleable.TimeHorizontalScrollView_mainTickDrawableId, -1);
         otherTickDrawableId = ta.getResourceId(R.styleable.TimeHorizontalScrollView_otherTickDrawableId, -1);
         milliSecondIntervalSize = ta.getInteger(R.styleable.TimeHorizontalScrollView_tickPaddingRight, MillI_SECOND_INTERVAL_SIZE);
         rulerPosition = ta.getInteger(R.styleable.TimeHorizontalScrollView_rulerPosition, UnitRuler.RULER_BOTTOM);
         secondPrecision = ta.getInteger(R.styleable.TimeHorizontalScrollView_SecondPrecision, UnitRuler.DEFAULT_SECOND_PRECISION);
         millisecondPrecision = ta.getInteger(R.styleable.TimeHorizontalScrollView_MillisecondPrecision, UnitRuler.DEFAULT_MILLISECOND_PRECISION);
+        tickValueColor = ta.getColor(R.styleable.TimeHorizontalScrollView_tickValueColor, Color.BLACK);
         ta.recycle();
     }
     public abstract static class Params {
@@ -61,6 +64,8 @@ public class ParamsController {
 
         public int mainTickImageViewDrawableId = -1, otherTickImageViewDrawableId = -1;
 
+        public int tickValueColor;
+
         public void apply(ParamsController mParamsController) {
             mParamsController.setSecondPrecision(this.secondPrecision);
             mParamsController.setMillisecondPrecision(this.millisecondPrecision);
@@ -74,6 +79,7 @@ public class ParamsController {
                 mParamsController.setMilliSecondIntervalSize(this.milliSecondIntervalSize);
             }
             mParamsController.setRulerPosition(this.rulerPosition);
+            mParamsController.setTickValueColor(this.tickValueColor);
         }
     }
 
@@ -87,6 +93,11 @@ public class ParamsController {
 
     public void setMilliSecondIntervalSize(int milliSecondIntervalSize) {
         this.milliSecondIntervalSize = milliSecondIntervalSize;
+    }
+
+
+    public void setTickValueColor(int tickValueColor){
+        this.tickValueColor = tickValueColor;
     }
 
     public void setRulerPosition(int rulerPosition) {

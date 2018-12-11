@@ -15,6 +15,11 @@
             <enum name="top" value="0"/>
             <enum name="bottom" value="1"/>
         </attr>
+        <attr name="pivotLineWidth" format="integer|reference"/>
+        <attr name="pivotLineColor" format="color|reference"/>
+        <attr name="defaultRectWidth" format="integer|reference"/>
+        <attr name="defaultRectColor" format="color|reference"/>
+        <attr name="tickValueColor" format="color|reference"/>
     </declare-styleable>
 
 </resources>
