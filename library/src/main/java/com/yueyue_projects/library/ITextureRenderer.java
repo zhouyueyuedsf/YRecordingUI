@@ -5,5 +5,5 @@ import android.util.SparseArray;
 
 
 public interface ITextureRenderer {
-    void draw(Canvas canvas, int renderStartPx, int renderPivotPx, int renderEndPx, int renderHeight, SparseArray<Integer> renderDatas);
+    void draw(Canvas canvas, int renderStartPx, int renderPivotPx, int renderEndPx, int renderHeight, SparseArray<RenderData> renderDatas);
 }

@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
@@ -24,20 +26,19 @@ import static android.content.ContentValues.TAG;
 public class TimeHorizontalScrollView extends HorizontalScrollView implements IBuilderParam {
     private final int DEFAULT_START_POSITION = ScreenUtil.getScreenWidthPix(this.getContext().getApplicationContext()) / 2;
     private int mStartPosition = DEFAULT_START_POSITION;
-
     private List<UnitRuler> mUnitRulers = new LinkedList<>();
-
-    private final int PRE_LOAD_NUM = 3;
     private LinearLayout rootLayout;
     private boolean initFlag = true;
-
     private Paint mPaint;
     private int mUnitRulerPx = -1;
     private float mMillisecondEachPx = 0;
-    private SparseArray<Integer> mFrameDatas = new SparseArray<>();
+    private SparseArray<RenderData> mFrameDatas = new SparseArray<>();
     private boolean mStopFlag = false;
-
     private ITextureRenderer mITextureRenderer;
+    private int bigPrecision;
+    private int preBigN = 0;
+    private int scrollToPx = 0;
+    private ParamsController mTimeScrollViewController;
 
     public TimeHorizontalScrollView(Context context) {
         this(context, null);
@@ -49,7 +50,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
 
     public TimeHorizontalScrollView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        timeScrollViewController = new TimeScrollViewController(context, attrs, defStyleAttr);
+        mTimeScrollViewController = new TimeScrollViewController(context, attrs, defStyleAttr);
         show();
     }
 
@@ -70,7 +71,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
                 addOneUnitRuler();
             } else {
                 //预加载三个刻度
-                for (int i = 0; i < PRE_LOAD_NUM; i++) {
+                for (int i = 0; i < 3; i++) {
                     addOneUnitRuler();
                 }
                 initFlag = false;
@@ -109,18 +110,18 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
         if (mITextureRenderer != null) {
             mITextureRenderer.draw(canvas, startPx, pivotPx, endPx, mPivotLineHeight, mFrameDatas);
         } else {
-            mPaint.setColor(((TimeScrollViewController)(timeScrollViewController)).defaultRectColor);
+            mPaint.setColor(((TimeScrollViewController)(mTimeScrollViewController)).defaultRectColor);
             for (int i = 0; i < mFrameDatas.size(); i++) {
                 int key = mFrameDatas.keyAt(i);
                 if (key >= startPx && key <= pivotPx) {
-                    int vol = mFrameDatas.get(key);
+                    int vol = mFrameDatas.get(key).getVolume();
                     canvas.drawRect(key, this.getMeasuredHeight() / 2 - vol, key + 5, this.getMeasuredHeight() / 2 + vol, mPaint);
                 }
             }
         }
-        mPaint.setColor(((TimeScrollViewController)(timeScrollViewController)).pivotLineColor);
-        canvas.drawRect(pivotPx - (((TimeScrollViewController)(timeScrollViewController)).pivotLineWidth / 2), 0,
-                pivotPx + (((TimeScrollViewController)(timeScrollViewController)).pivotLineWidth / 2), mPivotLineHeight, mPaint);
+        mPaint.setColor(((TimeScrollViewController)(mTimeScrollViewController)).pivotLineColor);
+        canvas.drawRect(pivotPx - (((TimeScrollViewController)(mTimeScrollViewController)).pivotLineWidth / 2), 0,
+                pivotPx + (((TimeScrollViewController)(mTimeScrollViewController)).pivotLineWidth / 2), mPivotLineHeight, mPaint);
     }
 
 
@@ -132,26 +133,24 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
     }
 
 
-    private int bigPrecision;
-    private int smallPrecision;
+
     private void addOneUnitRuler() {
         UnitRuler.StyleBuilder builder = new UnitRuler.StyleBuilder(this.getContext());
         String tickValue = "00:00";
         if (mUnitRulers.size() != 0) {
-            tickValue = TimeUtil.incrementBySecond(mUnitRulers.get(mUnitRulers.size() - 1).mParamsController.tickText, timeScrollViewController.secondPrecision);
+            tickValue = TimeUtil.incrementBySecond(mUnitRulers.get(mUnitRulers.size() - 1).mParamsController.tickText, mTimeScrollViewController.secondPrecision);
         }
         builder.setTickValue(tickValue)
-                .setSecondPrecision(timeScrollViewController.secondPrecision)
-                .setMillisecondPrecision(timeScrollViewController.millisecondPrecision)
-                .setMilliSecondIntervalSize(timeScrollViewController.milliSecondIntervalSize)
-                .setTimeRulerPosition(timeScrollViewController.rulerPosition)
-                .setTickValueColor(timeScrollViewController.tickValueColor)
-                .setTickImageViewDrawable(timeScrollViewController.mainTickDrawableId, timeScrollViewController.otherTickDrawableId);
+                .setSecondPrecision(mTimeScrollViewController.secondPrecision)
+                .setMillisecondPrecision(mTimeScrollViewController.millisecondPrecision)
+                .setMilliSecondIntervalSize(mTimeScrollViewController.milliSecondIntervalSize)
+                .setTimeRulerPosition(mTimeScrollViewController.rulerPosition)
+                .setTickValueColor(mTimeScrollViewController.tickValueColor)
+                .setTickImageViewDrawable(mTimeScrollViewController.mainTickDrawableId, mTimeScrollViewController.otherTickDrawableId);
         UnitRuler unitRuler = (UnitRuler) builder.create();
         mUnitRulers.add(unitRuler);
         if (initFlag) {
             bigPrecision = unitRuler.getSecondPrecision();
-            smallPrecision = unitRuler.getMillisecondPrecision();
         }
         rootLayout.addView(unitRuler, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
@@ -179,11 +178,6 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
         }
     }
 
-    private int preBigN = 0;
-
-
-    private int scrollToPx = 0;
-
     private void moveTo(String time){
         if (mUnitRulerPx != -1) {
             scrollToPx = TimeUtil.convertSpecPrecision(time, mMillisecondEachPx, Calendar.MILLISECOND);
@@ -199,20 +193,11 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
         }
     }
 
-    /**
-     * 该帧所在的时间点和音量
-     * @param time 格式为mm:ss:SSS
-     * @param volumeValue (0 - 100)
-     */
-    public void setFrameData(String time, int volumeValue){
-        mFrameDatas.put(TimeUtil.convertSpecPrecision(time, mMillisecondEachPx, Calendar.MILLISECOND) + mStartPosition, volumeValue);
-    }
-
-    public void setFrameData(int volumeValue){
-        int px = TimeUtil.convertSpecPrecision(mCurTime, mMillisecondEachPx, Calendar.MILLISECOND);
-        mFrameDatas.put(px + mStartPosition, volumeValue);
+    public void setFrameData(RenderData renderData){
+        mFrameDatas.put(TimeUtil.convertSpecPrecision(mCurTime, mMillisecondEachPx, Calendar.MILLISECOND) + mStartPosition, renderData);
         invalidate();
     }
+
 
 
     private String mCurTime = "00:00:000";
@@ -254,14 +239,6 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
         mLastPx = scrollToPx + mStartPosition;
     }
 
-    /**
-     * 设置渲染间距
-     * @param interval
-     */
-    public void setInterval(int interval){
-
-    }
-
     public void setITextureRenderer(ITextureRenderer textureRenderer) {
         this.mITextureRenderer = textureRenderer;
     }
@@ -270,7 +247,6 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
     private int curX = 0;
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 curX = (int) ev.getRawX();
@@ -278,7 +254,6 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
             case MotionEvent.ACTION_MOVE:
                 int delaX = (int) (ev.getRawX() - curX);
                 curX = (int) ev.getRawX();
-                Log.d(TAG, "onTouchEvent: delatX: " + delaX);
                 scrollToPx -= delaX;
                 if (scrollToPx + mStartPosition >= mLastPx) {
                     if (delaX <= 0) {
@@ -294,35 +269,15 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
                         return false;
                     }
                 }
-                Log.d(TAG, "onTouchEvent: scrollPx: " + scrollToPx);
                 smoothScrollTo(scrollToPx, this.getScrollY());
                 return true;
         }
         return true;
     }
 
-//    @Override
-//    public void fling(int velocityX) {
-//        //重写fling方法，将速度除以三，减缓其滑动速度
-//        super.fling(velocityX / 100);
-//    }
-
-    private ParamsController timeScrollViewController;
-//    public static class StyleBuilder extends UnitRuler.StyleBuilder {
-//
-//        public StyleBuilder(Context context) {
-//            super(context);
-//            P = new TimeScrollViewController.TimeScrollParams(context);
-//        }
-//
-//        @Override
-//        public IBuilderParam create() {
-//            TimeHorizontalScrollView scrollView = new TimeHorizontalScrollView(context);
-//            //自己设置的值
-//            P.apply(scrollView.timeScrollViewController);
-//            scrollView.show();
-//            return scrollView;
-//        }
-//    }
+    public void setPivotLineColor(@ColorInt int color){
+        ((TimeScrollViewController)mTimeScrollViewController).pivotLineColor = color;
+        invalidate();
+    }
 
 }

@@ -27,7 +27,7 @@ public class ParamsController {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.TimeHorizontalScrollView, defStyleAttr, 0);
         mainTickDrawableId = ta.getResourceId(R.styleable.TimeHorizontalScrollView_mainTickDrawableId, -1);
         otherTickDrawableId = ta.getResourceId(R.styleable.TimeHorizontalScrollView_otherTickDrawableId, -1);
-        milliSecondIntervalSize = ta.getInteger(R.styleable.TimeHorizontalScrollView_tickPaddingRight, MillI_SECOND_INTERVAL_SIZE);
+        milliSecondIntervalSize = ta.getDimensionPixelSize(R.styleable.TimeHorizontalScrollView_tickPaddingRight, MillI_SECOND_INTERVAL_SIZE);
         rulerPosition = ta.getInteger(R.styleable.TimeHorizontalScrollView_rulerPosition, UnitRuler.RULER_BOTTOM);
         secondPrecision = ta.getInteger(R.styleable.TimeHorizontalScrollView_SecondPrecision, UnitRuler.DEFAULT_SECOND_PRECISION);
         millisecondPrecision = ta.getInteger(R.styleable.TimeHorizontalScrollView_MillisecondPrecision, UnitRuler.DEFAULT_MILLISECOND_PRECISION);

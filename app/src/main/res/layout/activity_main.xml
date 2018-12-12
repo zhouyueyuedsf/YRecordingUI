@@ -15,6 +15,11 @@
             app:mainTickDrawableId="@drawable/im_main_tick1"
             app:otherTickDrawableId="@drawable/im_tick1"
             app:tickValueColor="@color/grey"
+            app:MillisecondPrecision="250"
+            app:SecondPrecision="1"
+            app:tickPaddingRight="20dp"
+            app:defaultRectWidth="0.5dp"
+            app:pivotLineColor="@color/colorPrimary"
             />
 
 

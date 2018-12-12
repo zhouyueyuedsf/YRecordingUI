@@ -10,14 +10,14 @@
 
         <attr name="mainTickDrawableId" format="integer|reference"/>
         <attr name="otherTickDrawableId" format="integer|reference"/>
-        <attr name="tickPaddingRight" format="integer"/>
+        <attr name="tickPaddingRight" format="dimension"/>
         <attr name="rulerPosition" format="enum">
             <enum name="top" value="0"/>
             <enum name="bottom" value="1"/>
         </attr>
-        <attr name="pivotLineWidth" format="integer|reference"/>
+        <attr name="pivotLineWidth" format="dimension|reference"/>
         <attr name="pivotLineColor" format="color|reference"/>
-        <attr name="defaultRectWidth" format="integer|reference"/>
+        <attr name="defaultRectWidth" format="dimension|reference"/>
         <attr name="defaultRectColor" format="color|reference"/>
         <attr name="tickValueColor" format="color|reference"/>
     </declare-styleable>

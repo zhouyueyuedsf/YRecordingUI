@@ -2,7 +2,7 @@ package com.yueyue_projects.library;
 
 public class RenderData {
     /**
-     * 音量
+     * 音量 0 - 100
      */
     private int volume;
 
