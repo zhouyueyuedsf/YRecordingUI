@@ -28,49 +28,49 @@ public class MainActivity extends AppCompatActivity {
 
         final TimeHorizontalScrollView scrollView = (TimeHorizontalScrollView)findViewById(R.id.time_scroll_view);
 //        scrollView.show();
-        scrollView.setPivotLineColor(Color.GREEN);
-
-        scrollView.setITextureRenderer(new ITextureRenderer() {
-            @Override
-            public void draw(Canvas canvas, int renderStartPx, int renderPivotPx, int renderEndPx, int renderHeight, SparseArray<RenderData> renderDatas) {
-                for (int i = 0; i < renderDatas.size(); i++) {
-                    int key = renderDatas.keyAt(i);
-                    if (key >= renderStartPx && key <= renderPivotPx) {
-                        int vol = renderDatas.get(key).getVolume();
-                        paint.setColor(Color.WHITE);
-                        canvas.drawRect(key, renderHeight/ 2 - vol, key + 2, renderHeight / 2 + vol, paint);
-                    } else if (key > renderPivotPx && key <= renderEndPx) {
-                        int vol = renderDatas.get(key).getVolume();
-                        paint.setColor(Color.RED);
-                        canvas.drawRect(key, renderHeight / 2 - vol, key + 2, renderHeight / 2 + vol, paint);
-                    };
-                }
-            }
-        });
-
-
-        scrollView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                scrollView.start();
-                long t = 0;
-                for (int i = 0; i < 500; i++) {
-                    scrollView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            scrollView.setFrameData(new MyRenderData((int) (Math.random() * 100)));
-                        }
-                    }, t);
-                    t += 20;
-                }
-                scrollView.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        scrollView.stop();
-                    }
-                }, 10 * 1000);
-            }
-        }, 1000);
+//        scrollView.setPivotLineColor(Color.GREEN);
+//
+//        scrollView.setITextureRenderer(new ITextureRenderer() {
+//            @Override
+//            public void draw(Canvas canvas, int renderStartPx, int renderPivotPx, int renderEndPx, int renderHeight, SparseArray<RenderData> renderDatas) {
+//                for (int i = 0; i < renderDatas.size(); i++) {
+//                    int key = renderDatas.keyAt(i);
+//                    if (key >= renderStartPx && key <= renderPivotPx) {
+//                        int vol = renderDatas.get(key).getVolume();
+//                        paint.setColor(Color.WHITE);
+//                        canvas.drawRect(key, renderHeight/ 2 - vol, key + 2, renderHeight / 2 + vol, paint);
+//                    } else if (key > renderPivotPx && key <= renderEndPx) {
+//                        int vol = renderDatas.get(key).getVolume();
+//                        paint.setColor(Color.RED);
+//                        canvas.drawRect(key, renderHeight / 2 - vol, key + 2, renderHeight / 2 + vol, paint);
+//                    };
+//                }
+//            }
+//        });
+//
+//
+//        scrollView.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                scrollView.start();
+//                long t = 0;
+//                for (int i = 0; i < 500; i++) {
+//                    scrollView.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            scrollView.setFrameData(new MyRenderData((int) (Math.random() * 100)));
+//                        }
+//                    }, t);
+//                    t += 20;
+//                }
+//                scrollView.postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        scrollView.stop();
+//                    }
+//                }, 10 * 1000);
+//            }
+//        }, 1000);
 
     }
 

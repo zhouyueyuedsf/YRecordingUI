@@ -7,14 +7,17 @@
     tools:context=".MainActivity">
 
         <com.yueyue_projects.library.TimeHorizontalScrollView
+            app:layout_constraintTop_toTopOf="parent"
             android:id="@+id/time_scroll_view"
             android:layout_width="match_parent"
             android:layout_height="150dp"
-            app:rulerPosition="bottom"
             android:background="@color/black"
+            app:rulerPosition="bottom"
             app:mainTickDrawableId="@drawable/im_main_tick1"
             app:otherTickDrawableId="@drawable/im_tick1"
             app:tickValueColor="@color/grey"
+            app:initTickNum="4"
+            app:startPosition="left"
             app:MillisecondPrecision="250"
             app:SecondPrecision="1"
             app:tickPaddingRight="20dp"

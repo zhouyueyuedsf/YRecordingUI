@@ -24,9 +24,11 @@ import java.util.TimerTask;
 import static android.content.ContentValues.TAG;
 
 public class TimeHorizontalScrollView extends HorizontalScrollView implements IBuilderParam {
-    private final int DEFAULT_START_POSITION = ScreenUtil.getScreenWidthPix(this.getContext().getApplicationContext()) / 2;
-    private int mStartPosition = DEFAULT_START_POSITION;
+    private int mStartPosition;
     private List<UnitRuler> mUnitRulers = new LinkedList<>();
+    /**
+     * HorizontalScrollView要求只有一个子节点，rootLayout
+     */
     private LinearLayout rootLayout;
     private boolean initFlag = true;
     private Paint mPaint;
@@ -51,6 +53,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
     public TimeHorizontalScrollView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mTimeScrollViewController = new TimeScrollViewController(context, attrs, defStyleAttr);
+        mStartPosition = ((TimeScrollViewController) mTimeScrollViewController).startPosition;
         show();
     }
 
@@ -70,8 +73,8 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
             if (totalWidth < ScreenUtil.getScreenWidthPix(this.getContext())) {
                 addOneUnitRuler();
             } else {
-                //预加载三个刻度
-                for (int i = 0; i < 3; i++) {
+                //预加载刻度
+                for (int i = 0; i < ((TimeScrollViewController)mTimeScrollViewController).initTickNum; i++) {
                     addOneUnitRuler();
                 }
                 initFlag = false;
@@ -172,7 +175,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
     private void setStartPosition() {
         if (rootLayout != null) {
             rootLayout.addView(new LinearLayout(this.getContext()), 0,
-                    new LinearLayout.LayoutParams(ScreenUtil.getScreenWidthPix(this.getContext()) - mStartPosition, ViewGroup.LayoutParams.MATCH_PARENT));
+                    new LinearLayout.LayoutParams(mStartPosition, ViewGroup.LayoutParams.MATCH_PARENT));
         } else {
             throw new IllegalStateException("rootLayout mush be add before setStartPosition");
         }

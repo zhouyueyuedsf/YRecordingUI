@@ -7,19 +7,33 @@
     <declare-styleable name="TimeHorizontalScrollView">
         <attr name="SecondPrecision" format="integer"/>
         <attr name="MillisecondPrecision" format="integer"/>
-
+        <!--主要刻度的背景-->
         <attr name="mainTickDrawableId" format="integer|reference"/>
+        <!--细分刻度的背景-->
         <attr name="otherTickDrawableId" format="integer|reference"/>
         <attr name="tickPaddingRight" format="dimension"/>
+
+        <!--刻度所在垂直方向位置-->
         <attr name="rulerPosition" format="enum">
             <enum name="top" value="0"/>
             <enum name="bottom" value="1"/>
+            <enum name="center" value="2"/>
         </attr>
+
+        <attr name="startPosition" format="dimension|enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+            <enum name="center" value="2"/>
+        </attr>
+
         <attr name="pivotLineWidth" format="dimension|reference"/>
         <attr name="pivotLineColor" format="color|reference"/>
         <attr name="defaultRectWidth" format="dimension|reference"/>
         <attr name="defaultRectColor" format="color|reference"/>
         <attr name="tickValueColor" format="color|reference"/>
+
+        <!--初始化主刻度加载的数量-->
+        <attr name="initTickNum" format="integer"/>
     </declare-styleable>
 
 </resources>
