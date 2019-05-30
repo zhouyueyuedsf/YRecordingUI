@@ -2,6 +2,7 @@ package com.yueyue_projects.library;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -167,6 +168,10 @@ public class UnitRuler extends ViewGroup implements IBuilderParam{
         }
     }
 
+    public void setMainTickDrawable(@DrawableRes int id){
+        tickImageViews[0].setImageDrawable(this.getContext().getResources().getDrawable(id));
+    }
+
     private void show() {
         tickImageViews = new ImageView[(mParamsController.secondPrecision * 1000) / mParamsController.millisecondPrecision];
         for (int i = 0; i < tickImageViews.length; i++) {
@@ -182,10 +187,6 @@ public class UnitRuler extends ViewGroup implements IBuilderParam{
         if (mParamsController.otherTickDrawableId != -1) {
             for (int i = 1; i < tickImageViews.length; i++) {
                 tickImageViews[i].setImageDrawable(this.getContext().getResources().getDrawable(mParamsController.otherTickDrawableId));
-            }
-        } else {
-            for (int i = 1; i < tickImageViews.length; i++) {
-                tickImageViews[i].setImageDrawable(this.getContext().getResources().getDrawable(R.drawable.im_tick));
             }
         }
         tickTextView = new TextView(this.getContext());

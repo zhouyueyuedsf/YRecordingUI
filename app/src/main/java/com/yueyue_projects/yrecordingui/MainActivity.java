@@ -6,15 +6,20 @@ import android.graphics.Paint;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatEditText;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.SparseArray;
+import android.view.View;
 
 import com.yueyue_projects.library.ITextureRenderer;
 import com.yueyue_projects.library.RenderData;
 import com.yueyue_projects.library.TimeHorizontalScrollView;
 import com.yueyue_projects.library.TimeUtil;
+import com.yueyue_projects.library.UnitRuler;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -27,6 +32,41 @@ public class MainActivity extends AppCompatActivity {
         final Paint paint = new Paint();
 
         final TimeHorizontalScrollView scrollView = (TimeHorizontalScrollView)findViewById(R.id.time_scroll_view);
+        final AppCompatImageView imageView = findViewById(R.id.iv_change_input_mode);
+        final AppCompatEditText editText = findViewById(R.id.et_choose_tomato_num);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int a = editText.getVisibility();
+                editText.setVisibility(scrollView.getVisibility());
+                scrollView.setVisibility(a);
+
+            }
+        });
+        scrollView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                final List<UnitRuler> unitRulerList = scrollView.getUnitRulers();
+                for (int i = 0; i < unitRulerList.size(); i++) {
+                    final UnitRuler unitRuler = unitRulerList.get(i);
+                    final int index = i;
+                    unitRuler.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+//                            unitRuler.setMainTickDrawable(R.drawable.ic_tomato_checked_timer_32dp);
+                            for (int j = 0; j < unitRulerList.size(); j++) {
+                                if (j <= index) {
+                                    unitRulerList.get(j).setMainTickDrawable(R.drawable.ic_tomato_checked_timer_32dp);
+                                } else {
+                                    unitRulerList.get(j).setMainTickDrawable(R.drawable.ic_tomato_unchecked_timer_32dp);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }, 1500);
+
 //        scrollView.show();
 //        scrollView.setPivotLineColor(Color.GREEN);
 //

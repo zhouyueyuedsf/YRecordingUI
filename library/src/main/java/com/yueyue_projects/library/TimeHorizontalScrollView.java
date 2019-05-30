@@ -312,7 +312,6 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
                             return false;
                         }
                     }
-                    Log.d("TouchEvent", scrollToPx + "");
                     smoothScrollTo(scrollToPx, this.getScrollY());
                     return true;
             }
@@ -325,4 +324,8 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
         invalidate();
     }
 
+
+    public List<UnitRuler> getUnitRulers() {
+        return mUnitRulers;
+    }
 }
