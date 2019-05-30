@@ -12,7 +12,12 @@
         <!--细分刻度的背景-->
         <attr name="otherTickDrawableId" format="integer|reference"/>
         <attr name="tickPaddingRight" format="dimension"/>
-
+        <!--刻度模式分别有不显示刻度，普通阿拉伯数字，时间-->
+        <attr name="tickStyle" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="number" value="1"/>
+            <enum name="time" value="2"/>
+        </attr>
         <!--刻度所在垂直方向位置-->
         <attr name="rulerPosition" format="enum">
             <enum name="top" value="0"/>

@@ -25,7 +25,10 @@ import static android.content.ContentValues.TAG;
 
 public class TimeHorizontalScrollView extends HorizontalScrollView implements IBuilderParam {
     private int mStartPosition;
-    private List<UnitRuler> mUnitRulers = new LinkedList<>();
+    /**
+     * 可以通过继承获得该值
+     */
+    List<UnitRuler> mUnitRulers = new LinkedList<>();
     /**
      * HorizontalScrollView要求只有一个子节点，rootLayout
      */
@@ -42,6 +45,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
     private int scrollToPx = 0;
     private ParamsController mTimeScrollViewController;
 
+    private TickStyle tickStyle;
     public TimeHorizontalScrollView(Context context) {
         this(context, null);
     }
@@ -54,16 +58,35 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
         super(context, attrs, defStyleAttr);
         mTimeScrollViewController = new TimeScrollViewController(context, attrs, defStyleAttr);
         mStartPosition = ((TimeScrollViewController) mTimeScrollViewController).startPosition;
+        if (mTimeScrollViewController.tickStyle == TickStyle.NONE) {
+            tickStyle = new TickStyle.None();
+        } else if (mTimeScrollViewController.tickStyle == TickStyle.NUMBER) {
+            tickStyle = new TickStyle.Number();
+        } else if (mTimeScrollViewController.tickStyle == TickStyle.TIME) {
+            tickStyle = new TickStyle.Time();
+        } else {
+            // 自定义实现
+            if (tickStyle == null) throw new IllegalArgumentException("need run setTickStyle");
+        }
         show();
+    }
+
+    /**
+     * 自定义实现的时候必须调用该函数
+     * @param tickStyle
+     */
+    public void setTickStyle(TickStyle tickStyle) {
+        this.tickStyle = tickStyle;
     }
 
     @SuppressLint("DrawAllocation")
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        if (this.getChildCount() == 1 && rootLayout.getChildCount() >= 1 && initFlag) {
+        int childCount = 0;
+        if ((childCount = rootLayout.getChildCount()) >= 1) {
             int totalWidth = 0;
-            for (int i = 0; i < rootLayout.getChildCount(); i++) {
+            for (int i = 0; i < childCount; i++) {
                 View v = rootLayout.getChildAt(i);
                 if (i == 1) {
                     mUnitRulerPx = v.getMeasuredWidth();
@@ -71,11 +94,23 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
                 totalWidth += v.getMeasuredWidth();
             }
             if (totalWidth < ScreenUtil.getScreenWidthPix(this.getContext())) {
-                addOneUnitRuler();
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        addOneUnitRuler();
+                    }
+                });
             } else {
                 //预加载刻度
-                for (int i = 0; i < ((TimeScrollViewController)mTimeScrollViewController).initTickNum; i++) {
-                    addOneUnitRuler();
+                if (initFlag) {
+                    for (int i = childCount - 1; i < ((TimeScrollViewController)mTimeScrollViewController).initTickNum; i++) {
+                        postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                addOneUnitRuler();
+                            }
+                        },500);
+                    }
                 }
                 initFlag = false;
             }
@@ -139,9 +174,11 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
 
     private void addOneUnitRuler() {
         UnitRuler.StyleBuilder builder = new UnitRuler.StyleBuilder(this.getContext());
-        String tickValue = "00:00";
+        String tickValue = "";
         if (mUnitRulers.size() != 0) {
-            tickValue = TimeUtil.incrementBySecond(mUnitRulers.get(mUnitRulers.size() - 1).mParamsController.tickText, mTimeScrollViewController.secondPrecision);
+            tickValue = tickStyle.increment(mUnitRulers.get(mUnitRulers.size() - 1).mParamsController.tickText, mTimeScrollViewController.secondPrecision);
+        } else {
+            tickValue = tickStyle.getInitTickValue();
         }
         builder.setTickValue(tickValue)
                 .setSecondPrecision(mTimeScrollViewController.secondPrecision)
@@ -174,6 +211,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
 
     private void setStartPosition() {
         if (rootLayout != null) {
+            // 用layout的形式去设置起始位置
             rootLayout.addView(new LinearLayout(this.getContext()), 0,
                     new LinearLayout.LayoutParams(mStartPosition, ViewGroup.LayoutParams.MATCH_PARENT));
         } else {
@@ -235,7 +273,7 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
     /**
      * 录音停止时，所在的位置
      */
-    private int mLastPx = 0;
+    private int mLastPx = Integer.MAX_VALUE;
 
     public void stop(){
         mStopFlag = true;
@@ -248,34 +286,38 @@ public class TimeHorizontalScrollView extends HorizontalScrollView implements IB
 
 
     private int curX = 0;
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        switch (ev.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                curX = (int) ev.getRawX();
-                break;
-            case MotionEvent.ACTION_MOVE:
-                int delaX = (int) (ev.getRawX() - curX);
-                curX = (int) ev.getRawX();
-                scrollToPx -= delaX;
-                if (scrollToPx + mStartPosition >= mLastPx) {
-                    if (delaX <= 0) {
-                        scrollToPx = mLastPx - mStartPosition;
-                        smoothScrollTo(scrollToPx, this.getScrollY());
-                        return false;
+        if (mStopFlag) {
+            switch (ev.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    curX = (int) ev.getRawX();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    int delaX = (int) (ev.getRawX() - curX);
+                    curX = (int) ev.getRawX();
+                    scrollToPx -= delaX;
+                    if (scrollToPx + mStartPosition >= mLastPx) {
+                        if (delaX <= 0) {
+                            scrollToPx = mLastPx - mStartPosition;
+                            smoothScrollTo(scrollToPx, this.getScrollY());
+                            return false;
+                        }
                     }
-                }
-                if (scrollToPx <= 0) {
-                    if (delaX >= 0) {
-                        scrollToPx = 0;
-                        smoothScrollTo(scrollToPx, this.getScrollY());
-                        return false;
+                    if (scrollToPx <= 0) {
+                        if (delaX >= 0) {
+                            scrollToPx = 0;
+                            smoothScrollTo(scrollToPx, this.getScrollY());
+                            return false;
+                        }
                     }
-                }
-                smoothScrollTo(scrollToPx, this.getScrollY());
-                return true;
+                    Log.d("TouchEvent", scrollToPx + "");
+                    smoothScrollTo(scrollToPx, this.getScrollY());
+                    return true;
+            }
         }
-        return true;
+        return super.onTouchEvent(ev);
     }
 
     public void setPivotLineColor(@ColorInt int color){

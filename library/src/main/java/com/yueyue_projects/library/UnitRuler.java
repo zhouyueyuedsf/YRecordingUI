@@ -3,6 +3,7 @@ package com.yueyue_projects.library;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -105,20 +106,30 @@ public class UnitRuler extends ViewGroup implements IBuilderParam{
     }
 
     private void layoutBottom(int l, int t, int r, int b) {
-        tickTextView.layout(0,
-                b - t - tickTextView.getMeasuredHeight(), tickTextView.getMeasuredWidth(), b - t);
         int maxHeight = Integer.MIN_VALUE;
+        int tickTextViewLeft = 0;
+        if (tickImageViews.length > 0) {
+            // 主刻度的宽
+            tickTextViewLeft = (tickImageViews[0].getMeasuredWidth() - tickTextView.getMeasuredWidth()) >> 1;
+        }
         for (ImageView imageView : tickImageViews) {
             if (maxHeight < imageView.getMeasuredHeight()) {
                 maxHeight = imageView.getMeasuredHeight();
             }
         }
         layoutTickImageViews(0, b - maxHeight - tickTextView.getMeasuredHeight());
+        tickTextView.layout(tickTextViewLeft,
+                b - t - tickTextView.getMeasuredHeight(), tickTextView.getMeasuredWidth() + tickTextViewLeft, b - t);
     }
 
     private void layoutTop(int l, int t, int r, int b) {
         int maxHeight = layoutTickImageViews(0, 0);
-        tickTextView.layout(0, maxHeight, tickTextView.getMeasuredWidth(), tickTextView.getMeasuredHeight());
+        int tickTextViewLeft = 0;
+        if (tickImageViews.length > 0) {
+            // 主刻度的宽
+            tickTextViewLeft = (tickImageViews[0].getMeasuredWidth() - tickTextView.getMeasuredWidth()) >> 1;
+        }
+        tickTextView.layout(tickTextViewLeft, maxHeight, tickTextView.getMeasuredWidth() + tickTextViewLeft, tickTextView.getMeasuredHeight());
     }
 
 
@@ -179,8 +190,13 @@ public class UnitRuler extends ViewGroup implements IBuilderParam{
         }
         tickTextView = new TextView(this.getContext());
         addSystemView(tickTextView);
-        tickTextView.setText(mParamsController.tickText);
-        tickTextView.setTextColor(mParamsController.tickValueColor);
+        if (!TextUtils.isEmpty(mParamsController.tickText)) {
+            tickTextView.setText(mParamsController.tickText);
+            tickTextView.setTextColor(mParamsController.tickValueColor);
+        } else {
+            tickTextView.setVisibility(GONE);
+            tickTextView.setHeight(0);
+        }
     }
 
 

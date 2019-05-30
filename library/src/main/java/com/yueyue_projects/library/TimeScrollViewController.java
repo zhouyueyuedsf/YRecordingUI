@@ -24,6 +24,7 @@ public class TimeScrollViewController extends ParamsController {
 
     int startPosition;
 
+
     public TimeScrollViewController(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.TimeHorizontalScrollView, defStyleAttr, 0);
@@ -32,7 +33,6 @@ public class TimeScrollViewController extends ParamsController {
         defaultRectWidth = ta.getDimensionPixelSize(R.styleable.TimeHorizontalScrollView_defaultRectWidth, 5);
         defaultRectColor = ta.getColor(R.styleable.TimeHorizontalScrollView_pivotLineColor, Color.BLACK);
         initTickNum = ta.getInteger(R.styleable.TimeHorizontalScrollView_initTickNum, 3);
-
         TypedValue outValue = new TypedValue();
         ta.getValue(R.styleable.TimeHorizontalScrollView_startPosition, outValue);
         if (outValue.type == TypedValue.TYPE_DIMENSION) {

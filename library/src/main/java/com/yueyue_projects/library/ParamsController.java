@@ -23,6 +23,11 @@ public class ParamsController {
 
     public int tickValueColor = -1;
 
+    /**
+     * 刻度模式
+     */
+    int tickStyle;
+
     public ParamsController(Context context, AttributeSet attrs, int defStyleAttr){
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.TimeHorizontalScrollView, defStyleAttr, 0);
         mainTickDrawableId = ta.getResourceId(R.styleable.TimeHorizontalScrollView_mainTickDrawableId, -1);
@@ -32,6 +37,7 @@ public class ParamsController {
         secondPrecision = ta.getInteger(R.styleable.TimeHorizontalScrollView_SecondPrecision, UnitRuler.DEFAULT_SECOND_PRECISION);
         millisecondPrecision = ta.getInteger(R.styleable.TimeHorizontalScrollView_MillisecondPrecision, UnitRuler.DEFAULT_MILLISECOND_PRECISION);
         tickValueColor = ta.getColor(R.styleable.TimeHorizontalScrollView_tickValueColor, Color.BLACK);
+        tickStyle = ta.getInteger(R.styleable.TimeHorizontalScrollView_tickStyle, TickStyle.TIME);
         ta.recycle();
     }
     public abstract static class Params {
